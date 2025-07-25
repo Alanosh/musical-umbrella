@@ -19,9 +19,9 @@ warnings.filterwarnings('ignore')
 
 # Constants
 DATA_DIR = 'memecoin_data'
-PUMP_FILE = f"{DATA_DIR}/pumps.csv"
-DUD_FILE = f"{DATA_DIR}/duds.csv"
-INTERVALS_PER_COIN = 360   # <-- ADJUSTED HERE ONLY
+PUMP_FILE = f"{DATA_DIR}/merged_pump.csv"  # updated filename
+DUD_FILE = f"{DATA_DIR}/merged_dud.csv"    # updated filename
+INTERVALS_PER_COIN = 360                   # updated interval count
 CONFIDENCE_THRESHOLD_PUMP = 0.9
 CONFIDENCE_THRESHOLD_DUD = 0.8
 CACHE_FILE = 'cache.json'
@@ -155,7 +155,6 @@ def train_model(df):
                 X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
                 y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
                 model.fit(X_train, y_train, sample_weight=sample_weights[train_idx])
-                # Print expected and required output at terminal
                 print("Expected output: Classification report for validation set")
                 print("Required output: ", classification_report(y_val, model.predict(X_val)))
             model.fit(X[mask], y[mask], sample_weight=sample_weights[mask])
@@ -272,11 +271,9 @@ def process_data(data_chunk, models, main_model, honeypot_model, anomaly_detecto
                 }
                 with open(PREDICTIONS_FILE, 'a') as f:
                     f.write(json.dumps(result) + '\n')
-                # Print expected and required output at terminal
                 print("Expected output: Contract Address prediction result")
                 print("Required output: ", result)
                 results.append(result)
-                # Print contract address to terminal (continuous for 3 minutes)
                 start_time = time.time()
                 while time.time() - start_time < 180:
                     print(f"Contract Address: {addr}", flush=True)
@@ -289,7 +286,7 @@ def process_data(data_chunk, models, main_model, honeypot_model, anomaly_detecto
             f.write(f"Process error: {str(e)}\n")
         return []
 
-# 4. Model Adaptation and Monitoring (UNCHANGED)
+# 4. Model Adaptation and Monitoring (UNCHANGED except INTERVALS_PER_COIN)
 def update_model_incrementally(data_chunk, models, main_model, honeypot_model, kmeans):
     try:
         df = pd.DataFrame(data_chunk)
@@ -325,7 +322,7 @@ def update_model_incrementally(data_chunk, models, main_model, honeypot_model, k
             f.write(f"Update error: {str(e)}\n")
         return models, main_model, honeypot_model
 
-# 5. Main Pipeline (UNCHANGED)
+# 5. Main Pipeline (UNCHANGED except INTERVALS_PER_COIN)
 def run_pipeline():
     try:
         df = load_and_merge_data()
